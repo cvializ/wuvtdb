@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block header_main %}Album{%endblock%}
+{% block header_sub %}
+    {% if album %}
+        {{ album.artist.name }} - {{ album.name }}
+    {% endif %}
+{% endblock %}
+
+{% block header_image %}
+    {% if album_art %}
+        <img src="{{ album_art }}" />
+    {% endif %}
+{% endblock %}
+
+{% block navigation_items %}
+    {% if album %}
+        <li><a href="/library/artist/{{ album.artist.name|urlencode }}">{{ album.artist.name }}</a></li>
+        <li><a href="/library/album/{{ album|urlencode }}/artist/{{ album.artist.name|urlencode }}">{{ album }}</a></li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <table id="wuvt-table">
+        <tr>
+            <th>#</th>
+            <th>Track Title</th>
+        </tr>
+        {% for song in songs %}
+            <tr class="{% cycle 'row-odd' 'row-even' %}">
+                <td width="2">{{ forloop.counter }}</td>
+                <td>{% if song.fcc %}<span class="fcc">FCC</span> {% endif %}{{ song.name }}</td>
+            </tr>
+        {% empty %}
+            {% for error in errors %}
+                <tr class="{% cycle 'row-odd' 'row-even' %}">
+                    <td>Error {{ forloop.counter }}</td>
+                    <td>{{ error }}</td>
+                </tr>
+            {% empty %}
+                <tr class='row-odd'>
+                    <td>No tracks found on Last.fm</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+{% endblock %}

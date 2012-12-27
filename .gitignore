@@ -1,0 +1,6 @@
+#Ignore
+bin
+*~
+venv
+*.pyc
+settings_*.py

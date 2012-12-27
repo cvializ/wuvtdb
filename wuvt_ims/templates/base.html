@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}WUVT-FM Blacksburg Music Library Database{% endblock %}</title>
+        <link rel="stylesheet" href="{{ STATIC_URL }}style.css" media="screen" />
+        {% block css %}{% endblock %}
+    </head>
+    <body>
+        <div id="wrap">
+            <div id="navigation">
+                {% block navigation %}
+                <ul>
+                    <li class="nav_item nav_first">WUVT Library</li>
+                    <li class="nav_item"><a href="/library">Search</a></li>
+                    {% block navigation_items %}
+                    <!-- 
+                        Breadcrumbs-style links go here, i.e.
+                        <li><a href="/library/artist/{{ artist }}">{{ artist }}</a></li>
+                        <li><a href="/library/album/{{ album }}/artist/{{ artist }}">{{ album }}</a></li>
+                         -->
+                    {% endblock %}
+                </ul>
+                {% endblock %}
+            </div>
+            <div id="header">
+                {% block header %}
+                <div id="header-image">
+                    {% block header_image %}{% endblock %}
+                </div>
+                <div id="header-text">
+                    <!-- Big bold page titles go here -->
+                    <h1>{% block header_main %}{% endblock %}</h1>
+                    <h2>{% block header_sub %}{% endblock %}</h2>
+                </div>
+                {% endblock %}
+            </div>
+            <div id="content">
+                {% block content %}
+                <!-- Items like tables and forms go here. -->
+                {% endblock %}
+            </div>
+            <div id="footer"></div>
+        </div>
+    </body>
+</html>

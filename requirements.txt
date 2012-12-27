@@ -1,0 +1,5 @@
+python-memcached
+mysql-python
+requests
+django
+xlrd

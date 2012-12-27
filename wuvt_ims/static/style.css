@@ -1,0 +1,123 @@
+html, body{
+	height: 100%;
+	margin: 0;
+	font: 12px Verdana, Arial, Helvetica, sans-serif;
+}
+
+a:link, a:visited, a:hover, a:active
+{
+    text-decoration: none;
+    color: blue;
+}
+
+#wrap
+{
+	min-height: 100%;
+}
+
+#navigation, #navigation ul
+{
+	margin: 0;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	background-color: black;
+	font-size: 14px;
+	font-weight: bold;
+	color: white;
+}
+
+#navigation.nav_first
+{
+	border-right: 1px solid white;
+}
+
+#navigation a:link, #navigation a:visited
+{
+	color: white;
+	border-bottom: 3px solid white;
+}
+#navigation a:hover, #navigation a:active
+{
+	border-bottom: none;
+}
+
+#header
+{
+	color: darkblue;
+	font-weight: bold;
+	margin: 10px;
+}
+#header h1
+{
+	display: block;
+	margin: inherit;
+	font-size: 30px;
+}
+#header h2
+{
+	display: inline;
+	margin: inherit;
+	font-size: 20px;
+}
+#header-text
+{
+    padding: 4px;
+}
+#header-image
+{
+    display: inline;
+    float: left;
+    margin-right: 10px;
+}
+
+#navigation ul li
+{
+	display: inline;
+}
+
+#content
+{
+	margin: 5px;
+}
+
+#wuvt-table
+{
+	width: 100%;
+	border-collapse: collapse;
+}
+#wuvt-table td, #wuvt-table th
+{
+	border: 2px solid white;
+	padding: 3px 10px 3px 10px;
+}
+#wuvt-table th
+{
+	font-size: 1.2em;
+	text-align: left;
+	padding-top: 5px;
+	padding-bottom: 4px;
+	background-color: darkblue;
+	color: white;
+}
+#wuvt-table tr td
+{
+	font-size: 1.1em;
+}
+
+#wuvt-table tr.row-odd td 
+{
+	color: black;
+	background-color: white;
+}
+#wuvt-table tr.row-even td 
+{
+	color: black;
+	background-color: lightblue;
+}
+
+.fcc
+{
+    font-family: Arial;
+    color: red;
+    font-weight: bold;
+}

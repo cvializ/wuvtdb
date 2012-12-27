@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>WUVT-FM Blacksburg AWOL-DMS</title>
+        <!-- <link rel="stylesheet" href="includes/screen.css" media="screen" charset="utf-8" /> -->
+
+    </head>
+    <body>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Submit" />
+        </form>
+    </body>
+</html>

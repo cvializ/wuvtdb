@@ -1,0 +1,104 @@
+To-Do List for Database
+=======================
+
+Other considerations:
+- HA
+- Easy of code understanding
+- Backups
+- storing the configurations
+- automated tests --- bad i know 
+
+
+MOST IMPORTANT
+- CSV Import (Admin)
+- Move Album Stack (Admin)
+- QuickTrack Entry Page
+- Import Current QuickTrack Data
+
+
+SOMEWHAT IMPORTANT
+- Reports from QuickTrack
+    + Playlists by Date or by DJ
+    + Song List for a given time span
+    + Rotation Spins for a given time span
+    + DJ Track Report (every track every played)
+    + Aggregate Tuning Hours
+    + Sub List
+    + Listserv Export
+- Engineering Log
+- Full DJ Search Front End
+
+- New Fields
+    + Album
+        - Image
+        - Multiple Artist?
+        - Barcode
+    + Song
+        - Location on Disk/Server
+    + TrafficLog
+        - OperatorLog reference!
+        
+
+KINDA IMPORTANT
+- Playlist Cue/Preload with "Go" Ability
+- Important Message on QT Login Screen
+- Combine Records
+- Track Data Import from FreeDB
+- Public QuickTrack Interface
+    + Last 15
+    + Search by DJ
+    + Search by Date/Time
+    
+    
+CAN WAIT
+
+
+
+
+
+
+TRACK LOGGING INTERFACE
+=======================
+- Tabs: Playlist, Engineering, Weather and Traffic
+- Playlist Tab
+    + Works like current QuickTrack
+    + Fields for inputting track info
+    + Playlist in REVERSE order, fields at TOP
+    + Inline Editing of the List
+    + No Page Reloads
+- Engineering Log
+    + Just like the paper log
+- Weather and Traffic
+    + Pull NWS Forecast
+    + Pull VDOT Traffic Info
+    + School Closings
+    + Anything Else?
+    
+- Login Page
+    + List of Shows
+    + Login Page means ON AUTOMATION?
+    + Multiple User Access: If a show is In Progress, ask the user upon loading
+      the page if they *really* want to concurrently edit the current session
+
+
+
+
+
+
+###dan's idea 
+
+My feature requests for the new Quicktrack are the ability to scan a
+barcode (possibly with a Cue-Cat) and automatically have Quicktrack
+pull the information of the CD and only make the user select the
+track. The other feature is to set up a 'to play' queue that you can
+fire off to the live 'playing' queue in any order you want, so that
+you can queue up a bunch during a long song and fire them off when you
+don't have as much time. Thinking of it now it would be cool to be
+able to import a previously made playlist to fire off as you play the
+songs (offline DJ only playlist generation server).  We've also been
+talking about playing with Rivendell (http://www.rivendellaudio.org/)
+for a while so it would be nice if whatever we write would be
+compatible. Let me know when you want to do the ...err.. project
+kickoff ... meeting.
+
+Dan

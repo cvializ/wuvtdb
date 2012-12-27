@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block header_main %}Artist{%endblock%}
+{% block header_sub %}
+    {% if artist %}
+        {{ artist.name }}
+    {% endif %}
+{% endblock %}
+
+{% block header_image %}
+    {% if artist_art %}
+        <img src="{{ artist_art }}" />
+    {% endif %}
+{% endblock %}
+
+{% block navigation_items %}
+    {% if artist %}
+        <li><a href="/library/artist/{{ artist.name|urlencode }}">{{ artist.name }}</a></li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{% if artist %}
+    <table id="wuvt-table">
+        <tr>
+            <th>Similar Artists</th>
+        </tr>
+        {% for similar_artist in similar_artists %}
+            <tr class="{% cycle 'row-odd' 'row-even' %}">
+                <td><a href="{{ similar_artist|urlencode }}">{{ similar_artist }}</a></td>
+            </tr>
+        {% empty %}
+            <tr class="row-odd">
+                <td>No similar artists found.</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% include "album_table.html" %}
+{% endblock %}

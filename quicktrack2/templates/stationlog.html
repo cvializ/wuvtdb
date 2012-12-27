@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>WUVT-FM Blacksburg AWOL-DMS</title>
+        <!-- <link rel="stylesheet" href="includes/screen.css" media="screen" charset="utf-8" /> -->
+
+    </head>
+    <body>
+        <table width="100%"><tr>
+            <td width="33%">Show Started: {{ operator.time_on }}</td>
+            <td width="34%" align="center">Show Name: {{ operator.show }}</td>
+            {% if form %}
+                <td width="33%" align="right"><a href="/quicktrack/{{ station }}/logout/">Sign Off</a></td>
+            {% else %}
+                <td width="33%" align="right">Show Started: {{ operator.time_off }}</td>
+            {% endif %}
+        </tr></table>
+        </div>
+        <div align="center">
+            <h1>Quicktrack 2</h1>  
+            <table border="1">
+                <tr>
+                    <td>Artist Name</td>
+                    <td>Track Name</td>
+                    <td>Album Name</td>
+                    <td>Label</td>
+                    <td>Request</td>
+                    <td>Vinyl</td>
+                    <td>Show</td>
+                </tr>
+{% if form %}
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <tr>
+                        <td>Now</td>
+                        <td>{{ form.artist.errors }}{{ form.artist }}</td>
+                        <td>{{ form.artist.errors }}{{ form.song }}</td>
+                        <td>{{ form.artist.errors }}{{ form.album }}</td>
+                        <td>{{ form.artist.errors }}{{ form.label }}</td>
+                        <td>{{ form.artist.errors }}{{ form.req }}</td>
+                        <td>{{ form.artist.errors }}{{ form.vin }}</td>
+                        <td><input type="submit" value="Submit" /></td>
+                    </tr>
+                </form>
+{% endif %}
+{% if tracks %}
+    {% for track in tracks %}
+        {% if track.song %}
+                <tr>
+                    <td>{{ track.song.album.artist.name }}</td>
+                    <td>{{ track.song.name }}</td>
+                    <td>{{ track.song.album.name }}</td>
+                    <td>{{ track.song.album.label }}</td>
+                    <td>{{ track.request }}</td>
+                    <td>{{ track.vinyl }}</td>
+                    <td>{{ track.operator }}</td>
+                </tr>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+            </table>
+        </div>
+    </body>
+</html>

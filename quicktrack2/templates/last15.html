@@ -1,0 +1,26 @@
+{% if last_15_tracks %}
+    <table border="true">
+    <tr>
+        <td>Time Aired</td>
+        <td>Artist Name</td>
+        <td>Track Name</td>
+        <td>Album Name</td>
+        <td>Label</td>
+        <td>DJ</td>
+    </tr>
+    {% for track in last_15_tracks %}
+        {% if track.song %}
+            <tr>
+                <td>{{ track.time_played }}</td>
+                <td>{{ track.song.album.artist }}</td>
+                <td>{{ track.song.name }}</td>
+                <td>{{ track.song.album.name }}</td>
+                <td>{{ track.song.album.label }}</td>
+                <td>{{ track.show.name }}</td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No tracks are available.</p>
+{% endif %}

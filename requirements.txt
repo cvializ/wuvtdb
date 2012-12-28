@@ -1,5 +1,7 @@
-python-memcached
-mysql-python
-requests
-django
-xlrd
+# On Windows, mysql-python is a bitch to build, so
+# I just use a pre-compiled binary installer
+mysql-python==1.2.3
+python-memcached==1.48
+requests==1.0.4
+django==1.4.3
+xlrd==0.8.0

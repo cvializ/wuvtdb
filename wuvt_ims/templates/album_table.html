@@ -1,68 +1,15 @@
-<form method="POST" action="">{% csrf_token %}
+{% if albums %}
     <table id="wuvt-table">
-        {% if form %}
-            <tr>
-                <th>
-                    {{ form.artist.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_artist" value="artist" checked="checked" />
-                </th>
-                <th>
-                    {{ form.album.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_album" value="album" />
-                </th>
-                <th>
-                    {{ form.label.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_label" value="album" />
-                </th>
-                <th>
-                    {{ form.year.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_year" value="album" />
-                </th>
-                <th>
-                    {{ form.genre.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_genre" value="album" />
-                </th>
-                <th>
-                    {{ form.stack.label_tag }}
-                    <input type="radio" name="sortby" id="sortby_stack" value="album" />
-                </th>
-            </tr>
-            <tr class="row-odd">
-                <td>
-                    {{ form.artist }}
-                </td>
-                <td>
-                    {{ form.album }}
-                </td>
-                <td>
-                    {{ form.label }}
-                </td>
-                <td>
-                    {{ form.year }}
-                </td>
-                <td>
-                    {{ form.genre }}
-                </td>
-                <td>
-                    {{ form.stack }}
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <th>Artist</th>
-                <th>Album</th>
-                <th>Label</th>
-                <th>Year</th>
-                <th>Genre</th>
-                <th>Stack</th>
-            </tr>
-        {% endif %}
+        <tr>
+            <th>Artist</th>
+            <th>Album</th>
+            <th>Label</th>
+            <th>Year</th>
+            <th>Genre</th>
+            <th>Stack</th>
+        </tr>
         {% for album in albums %}
-        {% if form %}
-        <tr class="{% cycle 'row-even' 'row-odd' %}">
-        {% else %}
         <tr class="{% cycle 'row-odd' 'row-even' %}">
-        {% endif %}
             <td><a href="/library/artist/{{ album.artist.name|urlencode }}">{{ album.artist.name }}</a></td>
             <td><a href="/library/album/{{ album.name|urlencode }}/artist/{{ album.artist.name|urlencode }}">{{ album.name }}</a></td>
             <td>{{ album.label.name }}</td>
@@ -76,33 +23,6 @@
             <td>{% for genre in album.genres.all %}{% if not forloop.first %}, {% endif %}{{ genre }}{% endfor %}</td>
             <td>{{ album.stack.name }}</td>
         </tr>
-        {% empty %}
-            {% if form %}
-                {% if form.is_bound %} {# Only show this if we've done a search #}
-                    <tr class="row-odd">
-                        <td colspan="5">No albums found.</td>
-                    </tr>
-                    {% for error in errors %}
-                        <tr>
-                            <td colspan="5">{{ error }}</td>
-                        </tr>
-                    {% endfor %}
-                {% endif %}
-            {% endif %}
         {% endfor %}
-        {% if form %}
-        <tr>
-            <td>Results per page:
-                {{ form.items_per_page }}
-            </td>
-            <td>Selected page:
-                {{ form.selected_page }}
-            </td>
-            <td><input type="submit" value="Submit" /></td>
-        </tr>
-        {% endif %}
     </table>
-</form>
-{% if form %}
-    {{ form.errors }}
 {% endif %}

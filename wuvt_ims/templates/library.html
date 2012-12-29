@@ -5,5 +5,27 @@
 {% endblock %}
 
 {% block content %}
-    {% include "album_table.html" %}
+    Fill in any of the fields below to search for an album.
+    <form method="POST" action="" >
+    {% csrf_token %}
+        <fieldset>
+            <legend>Search fields</legend>
+	        {{ form.song.label_tag }}: {{ form.song }}
+	        <br />
+	        {{ form.artist.label_tag }}: {{ form.artist }}
+	        {{ form.album.label_tag }}: {{ form.album }}
+	        {{ form.label.label_tag }}: {{ form.label }}
+	        <br />
+	        {{ form.year.label_tag }}: {{ form.year }}
+	        {{ form.genre.label_tag }}: {{ form.genre }}
+	        {{ form.stack.label_tag }}: {{ form.stack }}
+	        <br />
+	        {{ form.sortby.label_tag }}: {{ form.sortby }}
+	        <br />
+	        <input type="Submit" value="Submit" />
+        </fieldset>
+        {% include "album_table.html" %}
+        Results per page: {{ form.items_per_page }}
+        Selected page: {{ form.selected_page }}
+    </form>
 {% endblock %}

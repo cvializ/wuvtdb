@@ -9,12 +9,19 @@ from wuvt_ims.api import LastFm,AllMusic,LyricsWiki
 
 def lib_main(request):
     class SearchForm(forms.Form):
+        song = forms.CharField(required = False)
         artist = forms.CharField(required = False)
         album = forms.CharField(required = False)
         label = forms.CharField(required = False)
         year = forms.CharField(required = False)
         genre = forms.CharField(required = False)
         stack = forms.CharField(required = False)
+        sortby = forms.ChoiceField(choices = [('artist','Artist'),
+                                              ('album','Album'),
+                                              ('label','Label'),
+                                              ('genre','Genre'),
+                                              ('stack', 'Stack')],
+                                   initial = 'Artist')
         selected_page = forms.ChoiceField(required = False, 
                                           choices = [ (str(x),str(x)) for x in xrange(1,101)],
                                           initial = '1')
@@ -53,11 +60,16 @@ def lib_main(request):
                     year = (None, None)
             
             if len(errors) < 1:
+                song = form.cleaned_data['song']
+                albums = Album.objects.all()
+                if song <> '':
+                    albums_with_track = LastFm().search_by_song(song)
+                    albums = albums.filter(name__in = albums_with_track)
                 # First try to match the artist name with a comma, since artists are stored that way in the database
-                albums = Album.objects.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
+                albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
                 # If we didn't find the commafy-d title, try without the comma
                 if (albums.count() < 1):
-                    albums = Album.objects.filter(artist__name__icontains = form.cleaned_data['artist'])
+                    albums = albums.filter(artist__name__icontains = form.cleaned_data['artist'])
                     
                 albums = albums.filter(name__icontains = form.cleaned_data['album'])
                 albums = albums.filter(label__name__icontains = form.cleaned_data['label'])
@@ -69,13 +81,15 @@ def lib_main(request):
                 elif year[0] is not None:
                     albums = albums.filter(date_released = year[0])
             
-                sortby = request.POST['sortby']      
+                
+                sortby = form.cleaned_data['sortby']
             
                 if sortby == "album":
                     sortby = "name"
                 else:
                     sortby = sortby + "__name"    
-        
+                
+                    
                 albums = albums.filter(stack__name__icontains = form.cleaned_data['stack'])
                 albums = albums.order_by(sortby).distinct()
                 

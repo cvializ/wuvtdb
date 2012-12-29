@@ -13,14 +13,18 @@ class AbstractApi(object):
         self._url = url
         self._errors = []
 
-    def get(self, resource, params = None):
+    def get(self, resource, params = None, alternate_url = ""):
         """Take a dict of params, and return what we get from the api"""
         if not params:
             params = {}
 
         params = urllib.urlencode(params)
 
-        url = self._url % (resource, self._key, params)
+        request_url = self._url
+        if alternate_url:
+            request_url = alternate_url
+            
+        url = request_url % (resource, self._key, params)
 
         resp = requests.get(url)
 
@@ -46,6 +50,9 @@ class MusicApi(AbstractApi):
         raise NotImplementedError
     
     def get_artist_art(self, album):
+        raise NotImplementedError
+    
+    def search_by_song(self, title):
         raise NotImplementedError
     
     def errors(self):
@@ -108,6 +115,27 @@ class LastFm(MusicApi):
                 return album_art_tag.text
         else:
             self._errors.append("Error retrieving album art from Last.fm")
+            
+    def search_by_song(self, title):
+        request_args = {'track': title}
+        tree = self.get({'method': 'track.search'}, request_args)
+        
+        if tree is not None:
+            return [self._search_for_album_by_song(tag.find('name').text.encode('utf-8'),
+                                                  tag.find('artist').text.encode('utf-8'))
+                    for tag in tree.iterfind('.//track')]
+        else:
+            self._errors.append("Error retrieving album titles containing a track from Last.fm")
+    
+    def _search_for_album_by_song(self, title, artist):
+        request_args = {'track': title,
+                        'artist': artist}
+        tree = self.get({'method': 'track.getInfo'}, request_args)
+        
+        if tree is not None:
+            album_title_tag = tree.find(".//album/title")
+            if album_title_tag is not None:
+                return album_title_tag.text.encode('utf-8')
         
 class AllMusic(MusicApi):
     def __init__(self):
@@ -125,7 +153,7 @@ class AllMusic(MusicApi):
 
         return m.hexdigest()
 
-    def get(self, resource, params=None):       
+    def get(self, resource, params=None, alternate_url = ""):       
         params['sig'] = self._sig()
         return super(AllMusic, self).get(resource, params)
     
@@ -145,6 +173,19 @@ class AllMusic(MusicApi):
             sample_tag = tree.find('.//{com.rovicorp.metadataservice}sample')
             if sample_tag is not None:
                 return sample_tag.text
+        else:
+            self._errors.append("Error retrieving tracklist from Last.fm")
+
+    def search_by_song(self, title):
+        v2service_url = "http://api.rovicorp.com/search/v2.1/music/%s?apikey=%s&format=xml&%s"
+        request_args = {'entitytype': 'song',
+                        'query': title,
+                        'size': 20 }
+        tree = self.get('search', request_args, alternate_url = v2service_url)
+        if tree is not None:
+            song_tags = tree.findall('.//{com.rovicorp.metadataservice}song')
+            if song_tags is not None:
+                return song_tags.text
         else:
             self._errors.append("Error retrieving tracklist from Last.fm")
 

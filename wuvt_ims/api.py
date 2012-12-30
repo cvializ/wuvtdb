@@ -97,10 +97,7 @@ class PyLastFm(MusicApi):
     
     def search_for_albums_by_song(self, title):
         track_results = self._network.search_for_track('', title)
-        album_results = []
-        for track in track_results.get_next_page():
-            album_results.append(track.get_album().get_name())
-        return album_results
+        return [ track.get_album().get_name() for track in track_results.get_next_page() ]
     
 class LastFm(MusicApi):
     def __init__(self):
@@ -117,10 +114,7 @@ class LastFm(MusicApi):
         tree = self.get({'method': 'artist.getsimilar'}, request_args)
         if tree is not None:
             # Only show a similar artist if WUVT has it.
-            all_similar_artists = [ unicode(tag.text) for tag in tree.iterfind('.//name') ]
-            return [ wuvt_artist for wuvt_artist in all_similar_artists \
-                        if Artist.objects.filter(name__iexact = wuvt_artist).count() > 0 or \
-                        Artist.objects.filter(name__iexact = Artist.commafy(wuvt_artist)).count() > 0 ]
+            return [ unicode(tag.text) for tag in tree.iterfind('.//name') ]
         else:
             self._errors.append("Error retrieving similar artists from Last.fm")
             

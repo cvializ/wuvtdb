@@ -146,7 +146,10 @@ def lib_artist(request, artist_name):
         albums = Album.objects.filter(artist__name__iexact = artist.name).order_by("-date_released")
         
         if albums.count() > 0:
-            similar_artists = api.get_similar_artists(artist)
+            similar_artists = [ similar for similar in api.get_similar_artists(artist)
+                                if Artist.objects.filter(name__iexact = similar).count() > 0 or
+                                Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
+                                ]
             artist_art = api.get_artist_art(artist)
             errors.extend(api.errors())
 

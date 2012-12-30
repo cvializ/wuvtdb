@@ -5,7 +5,7 @@ from django.template import RequestContext
 from datetime import datetime
 
 from wuvt_ims.models import *
-from wuvt_ims.api import LastFm,AllMusic,LyricsWiki
+from wuvt_ims.api import PyLastFm,AllMusic,LyricsWiki
 
 def lib_main(request):
     class SearchForm(forms.Form):
@@ -63,7 +63,7 @@ def lib_main(request):
                 song = form.cleaned_data['song']
                 albums = Album.objects.all()
                 if song <> '':
-                    albums_with_track = LastFm().search_by_song(song)
+                    albums_with_track = PyLastFm().search_for_albums_by_song(song)
                     albums = albums.filter(name__in = albums_with_track)
                 # First try to match the artist name with a comma, since artists are stored that way in the database
                 albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
@@ -140,7 +140,7 @@ def lib_artist(request, artist_name):
     albums = []
     similar_artists = []
     artist_art = ''
-    api = LastFm()
+    api = PyLastFm()
     
     if artist is not None:
         albums = Album.objects.filter(artist__name__iexact = artist.name).order_by("-date_released")
@@ -163,14 +163,14 @@ def lib_album(request, artist_name, album_title):
     errors = []
     songs = []
     album_art = ''
-    api = LastFm()
+    api = PyLastFm()
     
     album = get_object_or_none(Album, artist__name__iexact = artist_name, name__iexact = album_title)
     artist = get_object_or_none(Artist, name__iexact = artist_name)
      
     if album is not None and artist is not None:
         album_art = api.get_album_art(album)
-        track_list = AllMusic().get_track_list(album)
+        track_list = api.get_track_list(album)
         
         songs = [ Song(name=track,
                        album=album,

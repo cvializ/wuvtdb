@@ -2,10 +2,12 @@ import urllib
 import time
 import hashlib
 import requests
+import pylast
 from requests import ConnectionError
 
 from xml.etree import ElementTree
 from wuvt_ims.models import *
+from pylast import COVER_LARGE, IMAGES_ORDER_POPULARITY
 
 class AbstractApi(object):
     def __init__(self, url, key):
@@ -52,13 +54,53 @@ class MusicApi(AbstractApi):
     def get_artist_art(self, album):
         raise NotImplementedError
     
-    def search_by_song(self, title):
+    def search_for_albums_by_song(self, title):
+        raise NotImplementedError
+    
+    def search_for_album_by_song(self, title, artist):
         raise NotImplementedError
     
     def errors(self):
         errors = list(self._errors)
         self._errors = []
         return errors
+
+class PyLastFm(MusicApi):
+    def __init__(self):
+        super(PyLastFm, self).__init__('', '530c72108fe6d60d35bb4a8fda85efd5')
+        self._secret = 'a01496aac8e2c7ddc90371aba5118317'
+        self._network = pylast.LastFMNetwork(api_key = self._key,
+                                             api_secret = self._secret,
+                                             )
+    def get(self, resource = None, params = None):
+        raise NotImplementedError
+    
+    def get_similar_artists(self, lib_artist):
+        artist = self._network.get_artist(lib_artist.name_without_comma)
+        return [ similar_item.item.get_name() for similar_item in artist.get_similar(8) ]
+    
+    def get_album_art(self, lib_album):
+        album = self._network.get_album(lib_album.artist.name_without_comma, lib_album.name)
+        return album.get_cover_image(COVER_LARGE)
+    
+    def get_track_list(self, lib_album):
+        album = self._network.get_album(lib_album.artist.name_without_comma, lib_album.name)
+        return [ track.get_name() for track in album.get_tracks() ]
+    
+    def get_artist_art(self, lib_artist):
+        artist = self._network.get_artist(lib_artist.name_without_comma)
+        return artist.get_images(IMAGES_ORDER_POPULARITY, 1).pop().sizes.large
+        
+    def search_for_album_by_song(self, title, artist_name):
+        track = self._network.get_track(artist_name, title)
+        return track.get_album().get_name()
+    
+    def search_for_albums_by_song(self, title):
+        track_results = self._network.search_for_track('', title)
+        album_results = []
+        for track in track_results.get_next_page():
+            album_results.append(track.get_album().get_name())
+        return album_results
     
 class LastFm(MusicApi):
     def __init__(self):
@@ -116,7 +158,7 @@ class LastFm(MusicApi):
         else:
             self._errors.append("Error retrieving album art from Last.fm")
             
-    def search_by_song(self, title):
+    def search_for_albums_by_song(self, title):
         request_args = {'track': title}
         tree = self.get({'method': 'track.search'}, request_args)
         
@@ -127,9 +169,9 @@ class LastFm(MusicApi):
         else:
             self._errors.append("Error retrieving album titles containing a track from Last.fm")
     
-    def _search_for_album_by_song(self, title, artist):
+    def search_for_album_by_song(self, title, artist_name):
         request_args = {'track': title,
-                        'artist': artist}
+                        'artist': artist_name}
         tree = self.get({'method': 'track.getInfo'}, request_args)
         
         if tree is not None:

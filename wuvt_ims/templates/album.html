@@ -34,7 +34,7 @@
         {% empty %}
             {% for error in errors %}
                 <tr class="{% cycle 'row-odd' 'row-even' %}">
-                    <td>Error {{ forloop.counter }}</td>
+                    <td>Error {{ song.track_num }}</td>
                     <td>{{ error }}</td>
                 </tr>
             {% empty %}

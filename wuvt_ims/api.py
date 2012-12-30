@@ -3,7 +3,6 @@ import time
 import hashlib
 import requests
 import pylast
-from requests import ConnectionError
 
 from xml.etree import ElementTree
 from wuvt_ims.models import *
@@ -89,7 +88,11 @@ class PyLastFm(MusicApi):
     
     def get_artist_art(self, lib_artist):
         artist = self._network.get_artist(lib_artist.name_without_comma)
-        return artist.get_images(IMAGES_ORDER_POPULARITY, 1).pop().sizes.large
+        image_list = artist.get_images(IMAGES_ORDER_POPULARITY, 1)
+        if len(image_list) > 0:
+            return image_list[0].sizes.large
+        else:
+            return ''
         
     def search_for_album_by_song(self, title, artist_name):
         track = self._network.get_track(artist_name, title)
@@ -97,7 +100,8 @@ class PyLastFm(MusicApi):
     
     def search_for_albums_by_song(self, title):
         track_results = self._network.search_for_track('', title)
-        return [ track.get_album().get_name() for track in track_results.get_next_page() ]
+        return [ track.get_album().get_name() for track in track_results.get_next_page()
+                    if track.get_album() is not None ]
     
 class LastFm(MusicApi):
     def __init__(self):

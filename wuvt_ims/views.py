@@ -170,17 +170,25 @@ def lib_album(request, artist_name, album_title):
     
     album = get_object_or_none(Album, artist__name__iexact = artist_name, name__iexact = album_title)
     artist = get_object_or_none(Artist, name__iexact = artist_name)
-     
+        
     if album is not None and artist is not None:
         album_art = api.get_album_art(album)
-        track_list = api.get_track_list(album)
         
-        songs = [ Song(name=track,
-                       album=album,
-                       fcc=LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
-                       ) \
-                 for track in track_list ]
-        errors.extend(api.errors())
+        # Check if we have the track listing in our database
+        songs = Song.objects.filter(album = album).order_by('track_num')
+        # If not, get the track listing from Last.fm and save it.
+        if songs.count() == 0:
+            songs = []
+            track_list = api.get_track_list(album)
+            errors.extend(api.errors())
+            for track in track_list:
+                song = Song(name = track,
+                             album = album,
+                             fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
+                             track_num = track_list.index(track)
+                             )
+                songs.append(song)
+                song.save()    
     else:
         if artist is None:
             errors.append('The artist was not found in the WUVT Library.')

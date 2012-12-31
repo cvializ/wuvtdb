@@ -38,6 +38,9 @@
                 {% block content %}
                 <!-- Items like tables and forms go here. -->
                 {% endblock %}
+                {% block errors %}
+                    {{ errors }}
+                {% endblock %}
             </div>
             <div id="footer"></div>
         </div>

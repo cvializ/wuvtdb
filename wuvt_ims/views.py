@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.core import validators
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from pylast import WSError
 
 from datetime import datetime
 from itertools import chain
@@ -152,7 +153,7 @@ def lib_artist(request, artist_name):
     if (artist is None):
         artist = get_object_or_none(Artist, name=artist_name)
 
-    errors = []
+    errors = ErrorList()
     albums = []
     similar_artists = []
     artist_art = ''
@@ -162,12 +163,14 @@ def lib_artist(request, artist_name):
         albums = Album.objects.filter(artist__name__iexact = artist.name).order_by("-date_released")
         
         if albums.count() > 0:
-            similar_artists = [ similar for similar in api.get_similar_artists(artist)
-                                if Artist.objects.filter(name__iexact = similar).count() > 0 or
-                                Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
-                                ]
-            artist_art = api.get_artist_art(artist)
-            errors.extend(api.errors())
+            try:
+                similar_artists = [ similar for similar in api.get_similar_artists(artist)
+                                    if Artist.objects.filter(name__iexact = similar).count() > 0 or
+                                    Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
+                                    ]
+                artist_art = api.get_artist_art(artist)
+            except WSError:
+                errors.append('The artist could not be found by Last.Fm')
 
     return render_to_response('artist.html', {
         'errors': errors,
@@ -179,7 +182,7 @@ def lib_artist(request, artist_name):
 
 
 def lib_album(request, artist_name, album_title):    
-    errors = []
+    errors = ErrorList()
     songs = []
     album_art = ''
     api = PyLastFm()
@@ -188,23 +191,25 @@ def lib_album(request, artist_name, album_title):
     artist = get_object_or_none(Artist, name__iexact = artist_name)
         
     if album is not None and artist is not None:
-        album_art = api.get_album_art(album)
-        
         # Check if we have the track listing in our database
         songs = Song.objects.filter(album = album).order_by('track_num')
-        # If not, get the track listing from Last.fm and save it.
-        if songs.count() == 0:
-            songs = []
-            track_list = api.get_track_list(album)
-            errors.extend(api.errors())
-            for track in track_list:
-                song = Song(name = track,
-                             album = album,
-                             fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
-                             track_num = track_list.index(track)
-                             )
-                songs.append(song)
-                song.save()    
+        
+        try:
+            album_art = api.get_album_art(album)
+            # If not, get the track listing from Last.fm and save it.
+            if songs.count() == 0:
+                songs = []
+                track_list = api.get_track_list(album)
+                for track in track_list:
+                    song = Song(name = track,
+                                 album = album,
+                                 fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
+                                 track_num = track_list.index(track)
+                                 )
+                    songs.append(song)
+                    song.save()
+        except WSError:
+            errors.append('The album or artist could not be found by Last.Fm')
     else:
         if artist is None:
             errors.append('The artist was not found in the WUVT Library.')

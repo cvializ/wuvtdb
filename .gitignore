@@ -6,3 +6,4 @@ venv
 settings_*.py
 .pydev*
 .project
+.settings

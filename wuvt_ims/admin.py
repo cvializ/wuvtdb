@@ -17,7 +17,7 @@ class SongInline(admin.TabularInline):
 
 class AlbumAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {'fields': ['name', 'artist', 'album_composer', 'label', 'stack', 'num_discs', 'compilation', 'date_added', 'date_released', 'reviewer', 'review', 'genres', 'librarian_note', 'related_albums', 'visible', 'missing', 'needs_librarian_review']}),
+        (None, {'fields': ['name', 'artist', 'label', 'stack', 'num_discs', 'compilation', 'date_added', 'date_released', 'review', 'genres', 'librarian_note', 'related_albums', 'visible', 'missing', 'needs_librarian_review']}),
     ]
     inlines = [SongInline]
 

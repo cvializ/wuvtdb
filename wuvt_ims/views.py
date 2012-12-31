@@ -108,12 +108,13 @@ def lib_main(request):
 
 def lib_main_filter_albums(form):
     albums = Album.objects.all()
-            
+
     # First filter by song, since it's the most limiting and costly
     song = form.cleaned_data['song']
     if song <> '':
         albums_with_track = PyLastFm().search_for_albums_by_song(song)
-        albums = albums.filter(name__in = albums_with_track)
+        albums = albums.filter(name__in = [ al[1] for al in albums_with_track ],
+                               artist__name__in = [ al[0] for al in albums_with_track ])
         
     # Try to match the artist name with a comma, since artists are stored that way in the database
     albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))

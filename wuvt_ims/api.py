@@ -100,8 +100,10 @@ class PyLastFm(MusicApi):
     
     def search_for_albums_by_song(self, title):
         track_results = self._network.search_for_track('', title)
-        return [ track.get_album().get_name() for track in track_results.get_next_page()
-                    if track.get_album() is not None ]
+        return [ (track.get_artist().get_name(), track.get_album().get_name())
+                    for track in track_results.get_next_page()
+                    if track.get_album() is not None and 
+                        track.get_artist() is not None]
     
 class LastFm(MusicApi):
     def __init__(self):
@@ -161,8 +163,9 @@ class LastFm(MusicApi):
         tree = self.get({'method': 'track.search'}, request_args)
         
         if tree is not None:
-            return [self._search_for_album_by_song(tag.find('name').text.encode('utf-8'),
-                                                  tag.find('artist').text.encode('utf-8'))
+            return [(tag.find('artist').text.encode('utf-8'), 
+                      self._search_for_album_by_song(tag.find('name').text.encode('utf-8'),
+                                                     tag.find('artist').text.encode('utf-8')))
                     for tag in tree.iterfind('.//track')]
         else:
             self._errors.append("Error retrieving album titles containing a track from Last.fm")

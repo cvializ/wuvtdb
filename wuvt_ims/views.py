@@ -1,19 +1,46 @@
 from django import forms
 from django.core.paginator import Paginator, EmptyPage
+from django.core import validators
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+
 from datetime import datetime
 
 from wuvt_ims.models import *
-from wuvt_ims.api import PyLastFm,AllMusic,LyricsWiki
+from wuvt_ims.api import PyLastFm,LyricsWiki
 
 def lib_main(request):
+    class YearRangeCharField(forms.CharField):
+        validator = validators.RegexValidator('(1|2)[0-9]{3}(-(1|2)[0-9]{3})?$', "Enter a valid date or date range.")
+        
+        def clean(self, value):            
+            if not value:
+                return (None, None)
+            
+            # Validate
+            self.validator(value)
+            
+            dash = value.find('-')
+            year_range = (None, None)
+            try:
+                if dash <> -1:
+                    year_from = value[:dash]
+                    year_to = value[dash+1:]
+                    year_range = (datetime(int(year_from), 1, 1), datetime(int(year_to), 1, 1))
+                else:
+                    year_range = (datetime(int(value), 1, 1), None)
+            except ValueError:
+                errors.append("Invalid year or range entered.")
+                return (None, None)
+            
+            return year_range
+    
     class SearchForm(forms.Form):
         song = forms.CharField(required = False)
         artist = forms.CharField(required = False)
         album = forms.CharField(required = False)
         label = forms.CharField(required = False)
-        year = forms.CharField(required = False)
+        year = YearRangeCharField(required = False)
         genre = forms.CharField(required = False)
         stack = forms.CharField(required = False)
         sortby = forms.ChoiceField(choices = [('artist','Artist'),
@@ -28,12 +55,11 @@ def lib_main(request):
         items_per_page = forms.ChoiceField(required = False,
                                                 choices = [('10', '10'),('25', '25'),('50', '50'),('100', '100')],
                                                 initial = '25')
-        
+    
     albums = []
     errors = []
     
     pager = Paginator([],1)
-    
     selected_page = 1
     
     form = None # it's our search form
@@ -43,21 +69,8 @@ def lib_main(request):
         if form.is_valid(): # All validation rules pass    
             temp_genre = Genre.objects.filter(name__icontains = form.cleaned_data['genre'])            
             
-            dash = form.cleaned_data['year'].find('-')
-            
             # Search with the given year
-            year = (None, None)
-            if form.cleaned_data['year'] <> "":
-                try:
-                    if dash <> -1:
-                        year_from = form.cleaned_data['year'][:dash]
-                        year_to = form.cleaned_data['year'][dash+1:]
-                        year = (datetime(int(year_from), 1, 1), datetime(int(year_to), 1, 1))
-                    else:
-                        year = (datetime(int(form.cleaned_data['year']), 1, 1), None)
-                except ValueError:
-                    errors.append("Invalid year or range entered.")
-                    year = (None, None)
+            year = form.cleaned_data['year']
             
             if len(errors) < 1:
                 song = form.cleaned_data['song']
@@ -103,6 +116,8 @@ def lib_main(request):
                     form.fields['selected_page'].choices = page_list
                     
                 form.fields['selected_page'].initial = selected_page
+        else:
+            errors.extend(form.errors.values())
     else:
         form = SearchForm(initial = {
                                     'artist': request.GET.get('artist'),

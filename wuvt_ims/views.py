@@ -1,17 +1,19 @@
 from django import forms
+from django.forms.util import ErrorList
 from django.core.paginator import Paginator, EmptyPage
 from django.core import validators
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from datetime import datetime
+from itertools import chain
 
 from wuvt_ims.models import *
 from wuvt_ims.api import PyLastFm,LyricsWiki
 
 def lib_main(request):
     class YearRangeCharField(forms.CharField):
-        validator = validators.RegexValidator('(1|2)[0-9]{3}(-(1|2)[0-9]{3})?$', "Enter a valid date or date range.")
+        validator = validators.RegexValidator('^(1|2)[0-9]{3}(-(1|2)[0-9]{3})?$', "Enter a valid date or date range.")
         
         def clean(self, value):            
             if not value:
@@ -22,16 +24,12 @@ def lib_main(request):
             
             dash = value.find('-')
             year_range = (None, None)
-            try:
-                if dash <> -1:
-                    year_from = value[:dash]
-                    year_to = value[dash+1:]
-                    year_range = (datetime(int(year_from), 1, 1), datetime(int(year_to), 1, 1))
-                else:
-                    year_range = (datetime(int(value), 1, 1), None)
-            except ValueError:
-                errors.append("Invalid year or range entered.")
-                return (None, None)
+            if dash <> -1:
+                year_from = value[:dash]
+                year_to = value[dash+1:]
+                year_range = (datetime(int(year_from), 1, 1), datetime(int(year_to), 1, 1))
+            else:
+                year_range = (datetime(int(value), 1, 1), None)
             
             return year_range
     
@@ -54,10 +52,9 @@ def lib_main(request):
                                           initial = '1')
         items_per_page = forms.ChoiceField(required = False,
                                                 choices = [('10', '10'),('25', '25'),('50', '50'),('100', '100')],
-                                                initial = '25')
-    
+                                                initial = '25')        
     albums = []
-    errors = []
+    errors = ErrorList()
     
     pager = Paginator([],1)
     selected_page = 1
@@ -66,58 +63,22 @@ def lib_main(request):
     # If a form was just submitted
     if request.method == 'POST':
         form = SearchForm(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass    
-            temp_genre = Genre.objects.filter(name__icontains = form.cleaned_data['genre'])            
+        if form.is_valid():
+            # Use the form fields to search and filter albums from the db
+            albums = lib_main_filter_albums(form)
             
-            # Search with the given year
-            year = form.cleaned_data['year']
+            pager = Paginator(albums, form.cleaned_data['items_per_page'])
+            selected_page = int(form.cleaned_data['selected_page'])
             
-            if len(errors) < 1:
-                song = form.cleaned_data['song']
-                albums = Album.objects.all()
-                if song <> '':
-                    albums_with_track = PyLastFm().search_for_albums_by_song(song)
-                    albums = albums.filter(name__in = albums_with_track)
-                # First try to match the artist name with a comma, since artists are stored that way in the database
-                albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
-                # If we didn't find the commafy-d title, try without the comma
-                if (albums.count() < 1):
-                    albums = albums.filter(artist__name__icontains = form.cleaned_data['artist'])
-                    
-                albums = albums.filter(name__icontains = form.cleaned_data['album'])
-                albums = albums.filter(label__name__icontains = form.cleaned_data['label'])
-                albums = albums.filter(genres__in = temp_genre)
-            
-                if year[0] is not None and year[1] is not None:
-                    albums = albums.filter(date_released__gte = year[0])
-                    albums = albums.filter(date_released__lte = year[1])
-                elif year[0] is not None:
-                    albums = albums.filter(date_released = year[0])
-            
-                
-                sortby = form.cleaned_data['sortby']
-            
-                if sortby == "album":
-                    sortby = "name"
-                else:
-                    sortby = sortby + "__name"    
-                
-                    
-                albums = albums.filter(stack__name__icontains = form.cleaned_data['stack'])
-                albums = albums.order_by(sortby).distinct()
-                
-                pager = Paginator(albums, form.cleaned_data['items_per_page'])
-                selected_page = int(form.cleaned_data['selected_page'])
-                
-                page_list = [(str(x), str(x)) for x in pager.page_range][:100]
-                if len(page_list) is 0:
-                    form.fields['selected_page'].choices = [('1','1')]
-                else:
-                    form.fields['selected_page'].choices = page_list
-                    
-                form.fields['selected_page'].initial = selected_page
+            page_list = [(str(x), str(x)) for x in pager.page_range][:100]
+            if len(page_list) is 0:
+                form.fields['selected_page'].choices = [('1','1')]
+            else:
+                form.fields['selected_page'].choices = page_list
+            form.fields['selected_page'].initial = selected_page
         else:
-            errors.extend(form.errors.values())
+            # Add all of the errors in the form.errors dict to our error list
+            errors.extend(chain.from_iterable(form.errors.values()))
     else:
         form = SearchForm(initial = {
                                     'artist': request.GET.get('artist'),
@@ -143,6 +104,46 @@ def lib_main(request):
         'albums': albums_page,
         'errors': errors,
         }, context_instance=RequestContext(request))
+
+def lib_main_filter_albums(form):
+    albums = Album.objects.all()
+            
+    # First filter by song, since it's the most limiting and costly
+    song = form.cleaned_data['song']
+    if song <> '':
+        albums_with_track = PyLastFm().search_for_albums_by_song(song)
+        albums = albums.filter(name__in = albums_with_track)
+        
+    # Try to match the artist name with a comma, since artists are stored that way in the database
+    albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
+    # If we didn't find the commafy-d title, try without the comma
+    if (albums.count() < 1):
+        albums = albums.filter(artist__name__icontains = form.cleaned_data['artist'])
+    
+    # Filter by fields
+    albums = albums.filter(name__icontains = form.cleaned_data['album'])
+    albums = albums.filter(label__name__icontains = form.cleaned_data['label'])
+    albums = albums.filter(stack__name__icontains = form.cleaned_data['stack'])
+    temp_genre = Genre.objects.filter(name__icontains = form.cleaned_data['genre'])
+    albums = albums.filter(genres__in = temp_genre)
+    
+    # Filter by year or year range
+    year = form.cleaned_data['year']
+    if year[0] is not None and year[1] is not None:
+        albums = albums.filter(date_released__gte = year[0])
+        albums = albums.filter(date_released__lte = year[1])
+    elif year[0] is not None:
+        albums = albums.filter(date_released = year[0])
+    
+    # Sort the query
+    sortby = form.cleaned_data['sortby']
+    if sortby == "album":
+        sortby = "name"
+    else:
+        sortby = sortby + "__name"    
+    albums = albums.order_by(sortby).distinct()
+    
+    return albums
 
 def lib_artist(request, artist_name):
     artist_name_comma = Artist.commafy(artist_name)

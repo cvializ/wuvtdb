@@ -115,7 +115,9 @@ def lib_main_filter_albums(form):
         albums_with_track = PyLastFm().search_for_albums_by_song(song)
         albums = albums.filter(name__in = [ al[1] for al in albums_with_track ],
                                artist__name__in = [ al[0] for al in albums_with_track ])
-        
+        for album in albums:
+            save_track_list(album)
+
     # Try to match the artist name with a comma, since artists are stored that way in the database
     albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
     # If we didn't find the commafy-d title, try without the comma
@@ -199,16 +201,7 @@ def lib_album(request, artist_name, album_title):
             album_art = api.get_album_art(album)
             # If not, get the track listing from Last.fm and save it.
             if songs.count() == 0:
-                songs = []
-                track_list = api.get_track_list(album)
-                for track in track_list:
-                    song = Song(name = track,
-                                 album = album,
-                                 fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
-                                 track_num = track_list.index(track)
-                                 )
-                    songs.append(song)
-                    song.save()
+                songs = save_track_list(album)
         except WSError:
             errors.append('The album or artist could not be found by Last.Fm')
     else:
@@ -223,7 +216,21 @@ def lib_album(request, artist_name, album_title):
         'album_art': album_art,
         'songs': songs,
         }, context_instance=RequestContext(request)) 
-        
+
+def save_track_list(album):
+    api = PyLastFm()
+    songs = []
+    track_list = api.get_track_list(album)
+    for track in track_list:
+        song = Song(name = track,
+                     album = album,
+                     fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
+                     track_num = track_list.index(track)
+                     )
+        songs.append(song)
+        song.save()
+    return songs
+
 def get_object_or_none(model, **kwargs):
     try:
         return model.objects.get(**kwargs)

@@ -24,7 +24,14 @@ class Reviewer(models.Model):
     
     def __unicode__(self):
         return self.name
-  
+
+class Review(models.Model):
+    reviewer = models.ForeignKey(Reviewer, related_name='reviewer_set')
+    text = models.TextField()
+    
+    def __unicode__(self):
+        return str(self.text)
+    
 # Labels are record labels.  They are assigned by album, not artist.
 class Label(models.Model):
     name = models.CharField(max_length=100)
@@ -86,11 +93,10 @@ class Artist(models.Model):
 class Album(models.Model):
     name = models.CharField(max_length=100)
     artist = models.ForeignKey(Artist, related_name='artist_set')
-    album_composer = models.ForeignKey(Artist, related_name='album_composer_set', null=True, blank=True)
+    composer = models.ForeignKey(Artist, related_name='album_composer_set', null=True, blank=True)
     label = models.ForeignKey(Label)
     stack = models.ForeignKey(Stack)
     num_discs = models.IntegerField()
-    reviewer = models.ForeignKey(Reviewer, null=True, blank=True)
     review = models.TextField(null=True, blank=True)
     genres = models.ManyToManyField(Genre, blank=True)
     date_added = models.DateField(null=True, blank=True)
@@ -116,9 +122,7 @@ class Song(models.Model):
     )
 
     album = models.ForeignKey(Album)
-    song_artist = models.ForeignKey(Artist, related_name='song_artist_set', null=True, blank=True)
-    song_composer = models.ForeignKey(Artist, related_name='song_composer_set', null=True, blank=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     track_num = models.IntegerField(null=True, blank=True)
     fcc = models.BooleanField()
     suggested = models.CharField(max_length=1, choices=SUGGESTED_CHOICES, null=True, blank=True)

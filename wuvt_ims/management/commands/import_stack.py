@@ -138,6 +138,7 @@ class Command(BaseCommand):
                 except:
                     print "**** Error: "
                     print al.name;
+                    
                     stack_add_results["errors"] += 1
                     continue
                     
@@ -183,5 +184,6 @@ class Command(BaseCommand):
                  "year": row[3].value,
                  "genres": unicode(row[4].value),
                  "stack": row[5].value,
-                 "missing": 0} for row in chain.from_iterable(self._generate_row(sheet) for sheet in self._generate_sheet(book)))
+                 "missing": 0} for row in chain.from_iterable(self._generate_row(sheet) for sheet in self._generate_sheet(book))
+                                if len(row) >= 6)
                         

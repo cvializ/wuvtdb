@@ -53,7 +53,8 @@ def lib_main(request):
                                           initial = '1')
         items_per_page = forms.ChoiceField(required = False,
                                                 choices = [('10', '10'),('25', '25'),('50', '50'),('100', '100')],
-                                                initial = '25')        
+                                                initial = '25') 
+               
     albums = []
     errors = ErrorList()
     
@@ -107,6 +108,7 @@ def lib_main(request):
         }, context_instance=RequestContext(request))
 
 def lib_main_filter_albums(form):
+    # Initialize the query
     albums = Album.objects.all()
 
     # First filter by song, since it's the most limiting and costly
@@ -118,7 +120,6 @@ def lib_main_filter_albums(form):
                                artist__name__in = [ al[0] for al in albums_with_track ])
         for album in albums:
             save_track_list(album)
-    
     
     current_query = albums
     # Try to match the artist name with a comma, since artists are stored that way in the database
@@ -166,16 +167,23 @@ def lib_artist(request, artist_name):
     api = PyLastFm()
     
     if artist is not None:
-        albums = Album.objects.filter(artist__name__iexact = artist.name).order_by("-date_released")
+        albums = Album.objects.filter(artist = artist).order_by("-date_released")
         
         if albums.count() > 0:
-            try:
-                similar_artists = [ similar for similar in api.get_similar_artists(artist)
-                                    if Artist.objects.filter(name__iexact = similar).count() > 0 or
-                                    Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
-                                    ]
-                artist_art = api.get_artist_art(artist)
-            except WSError:
+            
+            alternative_names = artist.name_and_alternatives
+            if len(alternative_names) > 1:
+                most_played_name = api.get_most_popular(alternative_names)
+            else:
+                most_played_name = artist.name_without_comma
+                
+            if most_played_name:
+                similar_artists = [ similar for similar in api.get_similar_artists(most_played_name)
+                                   if Artist.objects.filter(name__iexact = similar).count() > 0 or
+                                   Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
+                                   ]
+                artist_art = api.get_artist_art(most_played_name)
+            else:
                 errors.append('The artist could not be found by Last.Fm')
 
     return render_to_response('artist.html', {

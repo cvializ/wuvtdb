@@ -6,7 +6,7 @@ import pylast
 
 from xml.etree import ElementTree
 from wuvt_ims.models import *
-from pylast import COVER_LARGE, IMAGES_ORDER_POPULARITY
+from pylast import COVER_LARGE, IMAGES_ORDER_POPULARITY, WSError
 
 class AbstractApi(object):
     def __init__(self, url, key):
@@ -74,8 +74,8 @@ class PyLastFm(MusicApi):
     def get(self, resource = None, params = None):
         raise NotImplementedError
     
-    def get_similar_artists(self, lib_artist):
-        artist = self._network.get_artist(lib_artist.name_without_comma)
+    def get_similar_artists(self, lfm_artist):
+        artist = self._network.get_artist(lfm_artist)
         return [ similar_item.item.get_name() for similar_item in artist.get_similar(8) ]
     
     def get_album_art(self, lib_album):
@@ -86,8 +86,8 @@ class PyLastFm(MusicApi):
         album = self._network.get_album(lib_album.artist.name_without_comma, lib_album.name)
         return [ track.get_name() for track in album.get_tracks() ]
     
-    def get_artist_art(self, lib_artist):
-        artist = self._network.get_artist(lib_artist.name_without_comma)
+    def get_artist_art(self, lfm_artist):
+        artist = self._network.get_artist(lfm_artist)
         image_list = artist.get_images(IMAGES_ORDER_POPULARITY, 1)
         if len(image_list) > 0:
             return image_list[0].sizes.large
@@ -107,6 +107,21 @@ class PyLastFm(MusicApi):
                     for track in track_results.get_next_page()
                     if track.get_album() is not None and 
                         track.get_artist() is not None]
+    
+    def get_most_popular(self, artists):
+        popularity = {}
+        for artist in artists:
+            try:
+                lfm_artist = self._network.get_artist(artist)
+                popularity[artist] = lfm_artist.get_playcount()
+            except WSError:
+                continue
+            
+        popularity = sorted(popularity.items(), key=lambda x: x[1], reverse = True)
+        if popularity:
+            return popularity[0][0]
+        else:
+            return None
     
 class LastFm(MusicApi):
     def __init__(self):

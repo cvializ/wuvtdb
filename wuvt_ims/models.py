@@ -57,6 +57,32 @@ class Artist(models.Model):
         return self.name
     
     @property
+    def name_and_alternatives(self):
+        """Splits names and parentheticals into possible alternative names: 
+            'M + M (Martha and the Muffins)' -> ['M + M','Martha ... ']
+            It should try:
+                The Whole Thing
+                Just Parenthetical
+                No Parenthetical"""
+        name_options = [self.name,]
+        insignificant_cues = ['featuring','of','member of']
+        if '(' in self.name and ')' in self.name:
+            # add what's before the parens, assuming a space before the (
+            name_options.append(self.name[:self.name.find('(') - 1])
+            
+            # add what's between the parens, if it's significant
+            between_parens = self.name[self.name.find('(') + 1:self.name.find(')')]
+            insignificant = False
+            for cue in insignificant_cues:
+                if cue in between_parens:
+                    insignificant = True
+                    break
+            if not insignificant:
+                name_options.append(between_parens)
+                
+        return name_options
+    
+    @property
     def name_without_comma(self):
         """Swaps the two segments of text before and after the first comma: Bowie, David -> David Bowie"""
         return self.decommafy(unicode(self.name))

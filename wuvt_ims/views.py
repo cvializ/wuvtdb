@@ -111,18 +111,21 @@ def lib_main_filter_albums(form):
 
     # First filter by song, since it's the most limiting and costly
     song = form.cleaned_data['song']
-    if song <> '':
-        albums_with_track = PyLastFm().search_for_albums_by_song(song)
+    artist = form.cleaned_data['artist']
+    if song:
+        albums_with_track = PyLastFm().search_for_albums_by_song(song, artist)
         albums = albums.filter(name__in = [ al[1] for al in albums_with_track ],
                                artist__name__in = [ al[0] for al in albums_with_track ])
         for album in albums:
             save_track_list(album)
-
+    
+    
+    current_query = albums
     # Try to match the artist name with a comma, since artists are stored that way in the database
-    albums = albums.filter(artist__name__icontains = Artist.commafy(form.cleaned_data['artist']))
+    albums = current_query.filter(artist__name__icontains = Artist.commafy(artist))
     # If we didn't find the commafy-d title, try without the comma
     if (albums.count() < 1):
-        albums = albums.filter(artist__name__icontains = form.cleaned_data['artist'])
+        albums = current_query.filter(artist__name__icontains = artist)
     
     # Filter by fields
     albums = albums.filter(name__icontains = form.cleaned_data['album'])
@@ -218,18 +221,22 @@ def lib_album(request, artist_name, album_title):
         }, context_instance=RequestContext(request)) 
 
 def save_track_list(album):
-    api = PyLastFm()
-    songs = []
-    track_list = api.get_track_list(album)
-    for track in track_list:
-        song = Song(name = track,
-                     album = album,
-                     fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
-                     track_num = track_list.index(track)
-                     )
-        songs.append(song)
-        song.save()
-    return songs
+    lib_list = Song.objects.filter(album = album)
+    if lib_list.count() > 0:
+        return lib_list
+    else:
+        api = PyLastFm()
+        songs = []
+        track_list = api.get_track_list(album)
+        for track in track_list:
+            song = Song(name = track,
+                         album = album,
+                         fcc = LyricsWiki.has_fcc(LyricsWiki().get_lyrics(album.artist, track)),
+                         track_num = track_list.index(track)
+                         )
+            songs.append(song)
+            song.save()
+        return songs
 
 def get_object_or_none(model, **kwargs):
     try:

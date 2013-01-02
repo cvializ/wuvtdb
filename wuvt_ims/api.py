@@ -1,6 +1,6 @@
 import urllib
 import time
-import hashlib
+import hashlib 
 import requests
 import pylast
 
@@ -96,10 +96,13 @@ class PyLastFm(MusicApi):
         
     def search_for_album_by_song(self, title, artist_name):
         track = self._network.get_track(artist_name, title)
-        return track.get_album().get_name()
+        if track.get_album() is not None:
+            return track.get_album().get_name()
+        else:
+            return None
     
-    def search_for_albums_by_song(self, title):
-        track_results = self._network.search_for_track('', title)
+    def search_for_albums_by_song(self, title, artist = ''):
+        track_results = self._network.search_for_track(artist, title)
         return [ (track.get_artist().get_name(), track.get_album().get_name())
                     for track in track_results.get_next_page()
                     if track.get_album() is not None and 

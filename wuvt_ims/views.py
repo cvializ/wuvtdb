@@ -170,19 +170,13 @@ def lib_artist(request, artist_name):
         albums = Album.objects.filter(artist = artist).order_by("-date_released")
         
         if albums.count() > 0:
-            
-            alternative_names = artist.name_and_alternatives
-            if len(alternative_names) > 1:
-                most_played_name = api.get_most_popular(alternative_names)
-            else:
-                most_played_name = artist.name_without_comma
-                
-            if most_played_name:
-                similar_artists = [ similar for similar in api.get_similar_artists(most_played_name)
+            lfm_artist = get_last_fm_artist_name(artist)
+            if lfm_artist:
+                similar_artists = [ similar for similar in api.get_similar_artists(lfm_artist)
                                    if Artist.objects.filter(name__iexact = similar).count() > 0 or
                                    Artist.objects.filter(name__iexact = Artist.commafy(similar)).count() > 0
                                    ]
-                artist_art = api.get_artist_art(most_played_name)
+                artist_art = api.get_artist_art(lfm_artist)
             else:
                 errors.append('The artist could not be found by Last.Fm')
 
@@ -193,8 +187,7 @@ def lib_artist(request, artist_name):
         'artist_art': artist_art,
         'similar_artists': similar_artists,
         }, context_instance=RequestContext(request)) 
-
-
+                
 def lib_album(request, artist_name, album_title):    
     errors = ErrorList()
     songs = []
@@ -209,7 +202,8 @@ def lib_album(request, artist_name, album_title):
         songs = Song.objects.filter(album = album).order_by('track_num')
         
         try:
-            album_art = api.get_album_art(album)
+            lfm_artist = get_last_fm_artist_name(artist)
+            album_art = api.get_album_art(lfm_artist, album.name)
             # If not, get the track listing from Last.fm and save it.
             if songs.count() == 0:
                 songs = save_track_list(album)
@@ -228,6 +222,21 @@ def lib_album(request, artist_name, album_title):
         'songs': songs,
         }, context_instance=RequestContext(request)) 
 
+def get_last_fm_artist_name(lib_artist):
+    if lib_artist.api_name:
+        return lib_artist.api_name
+    
+    # If there's more than one alternative name (the first is the db name)
+    # then we have actual alternatives
+    alternative_names = lib_artist.name_and_alternatives
+    if len(alternative_names) > 1:
+        api = PyLastFm()
+        lib_artist.api_name = api.get_most_popular(alternative_names)
+        lib_artist.save()
+        return lib_artist.api_name
+    else:
+        return lib_artist.name_without_comma
+    
 def save_track_list(album):
     lib_list = Song.objects.filter(album = album)
     if lib_list.count() > 0:
@@ -235,7 +244,7 @@ def save_track_list(album):
     else:
         api = PyLastFm()
         songs = []
-        track_list = api.get_track_list(album)
+        track_list = api.get_track_list(get_last_fm_artist_name(album.artist), album.name)
         for track in track_list:
             song = Song(name = track,
                          album = album,

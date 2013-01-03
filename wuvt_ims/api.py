@@ -78,12 +78,12 @@ class PyLastFm(MusicApi):
         artist = self._network.get_artist(lfm_artist)
         return [ similar_item.item.get_name() for similar_item in artist.get_similar(8) ]
     
-    def get_album_art(self, lib_album):
-        album = self._network.get_album(lib_album.artist.name_without_comma, lib_album.name)
+    def get_album_art(self, lfm_artist, album_name):
+        album = self._network.get_album(lfm_artist, album_name)
         return album.get_cover_image(COVER_LARGE)
     
-    def get_track_list(self, lib_album):
-        album = self._network.get_album(lib_album.artist.name_without_comma, lib_album.name)
+    def get_track_list(self, lfm_artist, album_name):
+        album = self._network.get_album(lfm_artist, album_name)
         return [ track.get_name() for track in album.get_tracks() ]
     
     def get_artist_art(self, lfm_artist):

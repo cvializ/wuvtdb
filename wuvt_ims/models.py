@@ -48,6 +48,7 @@ class Label(models.Model):
 # An Artist has a name, bio, note from Len, and related artists.
 class Artist(models.Model):
     name = models.CharField(max_length=100)
+    api_name = models.CharField(max_length=100, null=True, blank=True)
     bio = models.TextField('About the Artist', null=True, blank=True)
     librarian_note = models.TextField('WUVT Notes', null=True, blank=True)
     related_artists = models.ManyToManyField("self", null=True, blank=True)
@@ -68,8 +69,8 @@ class Artist(models.Model):
         insignificant_cues = ['featuring','of','member of']
         if '(' in self.name and ')' in self.name:
             # add what's before the parens, assuming a space before the (
-            name_options.append(self.name[:self.name.find('(') - 1])
-            
+            before_parens = self.name[:self.name.find('(') - 1]
+            name_options.append(Artist.decommafy(before_parens))
             # add what's between the parens, if it's significant
             between_parens = self.name[self.name.find('(') + 1:self.name.find(')')]
             insignificant = False
@@ -94,15 +95,15 @@ class Artist(models.Model):
 
     @staticmethod
     def decommafy(label):
-        firstCommaPosition = label.find(',')
-        firstAndPosition = label.find('&') if label.find('&') <> -1 else label.find('and')
-        if (firstCommaPosition < firstAndPosition):
-            return label[firstCommaPosition + 2:firstAndPosition] + \
-                    label[:firstCommaPosition] + " " + \
-                    label[firstAndPosition:]
-            
-        if (firstCommaPosition > -1):
-            return label[firstCommaPosition + 2:] + " " + label[:firstCommaPosition]
+        if ',' in label:
+            firstCommaPosition = label.find(',')
+            firstAndPosition = label.find('&') if label.find('&') <> -1 else label.find('and')
+            if (firstCommaPosition < firstAndPosition):
+                return label[firstCommaPosition + 2:firstAndPosition] + \
+                        label[:firstCommaPosition] + " " + \
+                        label[firstAndPosition:]
+            else:
+                return label[firstCommaPosition + 2:] + " " + label[:firstCommaPosition]
         else:
             return label
         

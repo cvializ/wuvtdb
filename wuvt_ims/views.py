@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from django.forms.util import ErrorList
 from django.core.paginator import Paginator, EmptyPage
 from django.core import validators
@@ -116,10 +117,14 @@ def lib_main_filter_albums(form):
     artist = form.cleaned_data['artist']
     if song:
         albums_with_track = PyLastFm().search_for_albums_by_song(song, artist)
-        albums = albums.filter(name__in = [ al[1] for al in albums_with_track ],
-                               artist__name__in = [ al[0] for al in albums_with_track ])
-        for album in albums:
-            save_track_list(album)
+        
+        album_or_query = Q()
+        for track_album in albums_with_track:
+            album_or_query = album_or_query | Q(Q(name__icontains = track_album[1]) & Q(artist__name__icontains = track_album[0]))
+        albums = albums.filter(album_or_query)
+        
+#        for album in albums:
+#            save_track_list(album)
     
     current_query = albums
     # Try to match the artist name with a comma, since artists are stored that way in the database

@@ -118,11 +118,12 @@ def lib_main_filter_albums(form):
     if song:
         albums_with_track = PyLastFm().search_for_albums_by_song(song, artist)
         
-        album_or_query = Q()
+        q_album = Q()
         for track_album in albums_with_track:
-            album_or_query = album_or_query | Q(Q(name__icontains = track_album[1]) & Q(artist__name__icontains = track_album[0]))
-        albums = albums.filter(album_or_query)
-        
+            q_matches_artist = Q(artist__name__icontains = track_album[0]) | Q(artist__name__icontains = Artist.commafy(track_album[0]))
+            q_matches_album = Q(name__icontains = track_album[1])
+            q_album = q_album | (q_matches_artist & q_matches_album)
+        albums = albums.filter(q_album)
 #        for album in albums:
 #            save_track_list(album)
     

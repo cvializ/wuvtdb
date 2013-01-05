@@ -9,6 +9,7 @@ from pylast import WSError
 
 from datetime import datetime
 from itertools import chain
+import re
 
 from wuvt_ims.models import *
 from wuvt_ims.api import PyLastFm,LyricsWiki
@@ -47,7 +48,8 @@ def lib_main(request):
                                               ('album','Album'),
                                               ('label','Label'),
                                               ('genre','Genre'),
-                                              ('stack', 'Stack')],
+                                              ('stack', 'Stack'),
+                                              ('-date_released', 'Date'),],
                                    initial = 'Artist')
         selected_page = forms.ChoiceField(required = False, 
                                           choices = [ (str(x),str(x)) for x in xrange(1,101)],
@@ -116,6 +118,7 @@ def lib_main_filter_albums(form):
     song = form.cleaned_data['song']
     artist = form.cleaned_data['artist']
     if song:
+        artist = re.sub(' ?(the|of|and)','',artist)
         albums_with_track = PyLastFm().search_for_albums_by_song(song, artist)
         
         q_album = Q()
@@ -126,13 +129,13 @@ def lib_main_filter_albums(form):
         albums = albums.filter(q_album)
 #        for album in albums:
 #            save_track_list(album)
-    
-    current_query = albums
-    # Try to match the artist name with a comma, since artists are stored that way in the database
-    albums = current_query.filter(artist__name__icontains = Artist.commafy(artist))
-    # If we didn't find the commafy-d title, try without the comma
-    if (albums.count() < 1):
-        albums = current_query.filter(artist__name__icontains = artist)
+    else:
+        current_query = albums
+        # Try to match the artist name with a comma, since artists are stored that way in the database
+        albums = current_query.filter(artist__name__icontains = Artist.commafy(artist))
+        # If we didn't find the commafy-d title, try without the comma
+        if (albums.count() < 1):
+            albums = current_query.filter(artist__name__icontains = artist)
     
     # Filter by fields
     albums = albums.filter(name__icontains = form.cleaned_data['album'])
@@ -151,10 +154,10 @@ def lib_main_filter_albums(form):
     
     # Sort the query
     sortby = form.cleaned_data['sortby']
-    if sortby == "album":
-        sortby = "name"
-    else:
-        sortby = sortby + "__name"    
+    if sortby == 'album':
+        sortby = 'name'
+    elif 'date_released' not in sortby:
+        sortby = sortby + '__name'
     albums = albums.order_by(sortby).distinct()
     
     return albums

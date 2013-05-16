@@ -258,7 +258,7 @@ class LyricsWiki(AbstractApi):
         return label.title().replace(' ','_')
         
     def get(self, resource, params):
-        params = { key : self._wikify(value) for key, value in params.items() }
+        params = dict((key, self._wikify(value)) for (key, value) in params.items())
         params = urllib.urlencode(params)
         url_request = self._url % (params)
 

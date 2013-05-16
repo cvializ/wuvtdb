@@ -1,5 +1,6 @@
-# On Windows, mysql-python is a bitch to build, so
+# On Windows, mysql-python is difficult to build, so
 # I just use a pre-compiled binary installer
+# i.e. easy_install path/to/MySQL1.2.3installer.msi
 mysql-python==1.2.3
 python-memcached==1.48
 pylast==0.5.11

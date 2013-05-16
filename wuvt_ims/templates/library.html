@@ -22,10 +22,11 @@
 	        <br />
 	        {{ form.sortby.label_tag }}: {{ form.sortby }}
 	        <br />
-	        <input type="Submit" value="Submit" />
+	        <input type="submit" value="Submit" />
         </fieldset>
         {% include "album_table.html" %}
         Results per page: {{ form.items_per_page }}
         Selected page: {{ form.selected_page }}
+        <input type="submit" value="Go" />
     </form>
 {% endblock %}

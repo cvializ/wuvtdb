@@ -3,6 +3,8 @@
     <head>
         <title>{% block title %}WUVT-FM Blacksburg Music Library Database{% endblock %}</title>
         <link rel="stylesheet" href="{{ STATIC_URL }}style.css" media="screen" />
+        <script type="text/javascript" src="{{ STATIC_URL }}jquery-1.9.1.min.js"></script>
+        {% block script %}{% endblock %}
         {% block css %}{% endblock %}
     </head>
     <body>

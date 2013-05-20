@@ -80,6 +80,20 @@ a:link, a:visited, a:hover, a:active
 	margin: 5px;
 }
 
+#faq
+{
+    margin: 1em .5em;
+    padding: .5em;
+    border-style: solid;
+    border-width: 2px;
+    border-color: black;
+}
+
+#faq p
+{
+    width: 50%;	
+}
+
 #wuvt-table
 {
 	width: 100%;

@@ -84,9 +84,10 @@ class Artist(models.Model):
             'M + M (Martha and the Muffins)' -> ['M + M','Martha ... ']
             It should try:
                 The Whole Thing
+                The Whole Thing without Commas
                 Just Parenthetical
                 No Parenthetical"""
-        name_options = [self.name, ]
+        name_options = [self.name, self.name.replace(',', '')]
         insignificant_cues = ['featuring', 'of', 'member of']
         if '(' in self.name and ')' in self.name:
             # add what's before the parens, assuming a space before the (

@@ -2,14 +2,12 @@ from django import forms
 from django.db.models import Q
 from django.forms.util import ErrorList
 from django.core.paginator import Paginator, EmptyPage
-from django.core import validators
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from pylast import WSError
 
-from datetime import datetime
 from itertools import chain
-import re
+import re, datetime
 
 from wuvt_ims.models import *
 from wuvt_ims.api import PyLastFm, LyricsWiki, EchoNest
@@ -26,7 +24,7 @@ class YearRangeCharField(forms.CharField):
             else:
                 # Just leave if value[0] and value[1] are both None.
                 return
-        if value[1] is None and value[0] < datetime(1890, 1, 1):
+        if value[1] is None and value[0] < datetime.datetime(1890, 1, 1):
             raise ValidationError('Your query predates recorded sound.')
         if value[1] is not None and value[0] > value[1]:
             raise ValidationError('The first date must be earlier than the second.')
@@ -46,9 +44,9 @@ class YearRangeCharField(forms.CharField):
         if dash != -1:
             year_from = value[:dash]
             year_to = value[dash+1:]
-            year_range = (datetime(int(year_from), 1, 1), datetime(int(year_to), 1, 1))
+            year_range = (datetime.datetime(int(year_from), 1, 1), datetime.datetime(int(year_to), 1, 1))
         else:
-            year_range = (datetime(int(value), 1, 1), None)
+            year_range = (datetime.datetime(int(value), 1, 1), None)
     
         return year_range
 

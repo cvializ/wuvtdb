@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.localflavor.us.models import PhoneNumberField
-from django.core import validators
-from datetime import datetime
 from django.core.exceptions import ValidationError
 
 

@@ -2,9 +2,26 @@
 
 {% block script %}
 <script>
-var toggleFaq = function(){
+function toggleFaq() {
 	$('#faq').toggle();
 }
+
+/*
+ * demoSearchObject { song: '', artist: '', etc.}
+ */
+function demoForm(demoSearchObject) {
+	var form = $('form#search')[0];
+	form.reset();
+	for (var key in demoSearchObject) {
+		if (demoSearchObject.hasOwnProperty(key)) {
+			$('form#search input[name="' + key + '"]').val(demoSearchObject[key]);
+		}
+	}
+	form.submit();
+	
+	return true;
+}
+
 </script>
 {% endblock %}
 
@@ -23,16 +40,16 @@ var toggleFaq = function(){
         <p>If you like an artist, and you want to find similar artists, the WUVT Music Search can help you discover new music. Click on an artist's name, like <a href="/library/artist/New%20Order">New Order</a>. In the Artist page, there's a Similar Artists box containing bands like Joy Division and Depeche Mode. This will help you discover new bands or find tracks you didn't even know WUVT had in its stacks.</p>
         <h3>Here are some ideas for making a themed show!</h3>
         <ul>
-        <li><a href="?album=sex">A sexy themed show</a></li>
-        <li><a href="?label=merge&year=1995-2000">A label themed show</a></li>
-        <li><a href="?genre=funk&year=1975-1990">Classic funk</a></li>
-        <li><a href="?stack=Vinyl&year=1980-1990&genre=dance">All-vinyl 80s dance show</a></li>
+        <li><a href="?album=sex" onclick="return demoForm({album: 'sex'});">A sexy themed show</a></li>
+        <li><a href="?label=merge&year=1995-2000" onclick="return demoForm({label: 'merge', year: '1995-2000'});">A label themed show</a></li>
+        <li><a href="?genre=funk&year=1975-1990" onclick="return demoForm({genre: 'funk', year: '1975-1990'});">Classic funk</a></li>
+        <li><a href="?stack=Vinyl&year=1980-1990&genre=dance" onclick="return demoForm({stack: 'Vinyl', year: '1980-1990', genre: 'dance'});">All-vinyl 80s dance show</a></li>
         </ul>
         <h3>Notes</h3>
         <p>Searching only by song title is iffy. Song title alone will return few results. Searching by song title and by an artist will return more results.</p>
         <p>Some artist's names break the Artist and Album page, or resist searching. For example, searching Peter Bjorn and John doesn't return any results. Searching Bjorn and John however, does give you Peter Bjorn and John. Go figure.</p>
     </div>
-    <form method="POST" action="" >
+    <form id="search" method="POST" action="" >
     {% csrf_token %}
         <fieldset>
             <legend>Search fields</legend>

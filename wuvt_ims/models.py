@@ -1,38 +1,61 @@
 from django.db import models
 from django.contrib.localflavor.us.models import PhoneNumberField
+from django.core import validators
+from datetime import datetime
+from django.core.exceptions import ValidationError
+
+
+class AlbumSearch(models.Model):
+    song = models.CharField(max_length=255, blank=True)
+    artist = models.CharField(max_length=255, blank=True)
+    album = models.CharField(max_length=255, blank=True)
+    label = models.CharField(max_length=255, blank=True)
+    start_year = models.CharField(max_length=255, blank=True)
+    stop_year = models.CharField(max_length=255, blank=True)
+    genre = models.CharField(max_length=255, blank=True)
+    stack = models.CharField(max_length=255, blank=True)    
+        
+    def clean(self):
+        form_empty = True
+        for field_name, field_value in self.__dict__.iteritems():
+            # Check for None or '', so IntegerFields with 0 or similar things don't seem empty.
+            if field_value is not None and field_value != '':
+                form_empty = False
+                break
+        if form_empty:
+            raise ValidationError(u"You must fill at least one field!")
 
 class Stack(models.Model):
     name = models.CharField(max_length=100)
     notes = models.CharField(max_length=255, null=True, blank=True)
-    
+
     def __unicode__(self):
         return self.name
 
+
 class Genre(models.Model):
     name = models.CharField(max_length=100)
-    
+
     def __unicode__(self):
         return self.name
-        
-# REVIEWERS
-# People who review records.  Keeps things nice and orderly
-# and separates reviewers from user accounts.  This is necessary to accomodate past album
-# reviews that will be painfully and meticulously added to the database.  yeah.
+
+
 class Reviewer(models.Model):
     name = models.CharField(max_length=100)
     notes = models.CharField(max_length=255, null=True, blank=True)
-    
+
     def __unicode__(self):
         return self.name
+
 
 class Review(models.Model):
     reviewer = models.ForeignKey(Reviewer, related_name='reviewer_set')
     text = models.TextField()
-    
+
     def __unicode__(self):
         return str(self.text)
-    
-# Labels are record labels.  They are assigned by album, not artist.
+
+
 class Label(models.Model):
     name = models.CharField(max_length=100)
     bio = models.TextField('About the Label', null=True, blank=True)
@@ -41,11 +64,11 @@ class Label(models.Model):
     phone = PhoneNumberField(null=True, blank=True)
     website = models.URLField(null=True, blank=True)
     related_labels = models.ManyToManyField("self", null=True, blank=True)
-    
+
     def __unicode__(self):
         return self.name
 
-# An Artist has a name, bio, note from Len, and related artists.
+
 class Artist(models.Model):
     name = models.CharField(max_length=100)
     api_name = models.CharField(max_length=100, null=True, blank=True)
@@ -53,20 +76,20 @@ class Artist(models.Model):
     librarian_note = models.TextField('WUVT Notes', null=True, blank=True)
     related_artists = models.ManyToManyField("self", null=True, blank=True)
     needs_librarian_review = models.BooleanField()
-    
+
     def __unicode__(self):
         return self.name
-    
+
     @property
     def name_and_alternatives(self):
-        """Splits names and parentheticals into possible alternative names: 
+        """Splits names and parentheticals into possible alternative names:
             'M + M (Martha and the Muffins)' -> ['M + M','Martha ... ']
             It should try:
                 The Whole Thing
                 Just Parenthetical
                 No Parenthetical"""
-        name_options = [self.name,]
-        insignificant_cues = ['featuring','of','member of']
+        name_options = [self.name, ]
+        insignificant_cues = ['featuring', 'of', 'member of']
         if '(' in self.name and ')' in self.name:
             # add what's before the parens, assuming a space before the (
             before_parens = self.name[:self.name.find('(') - 1]
@@ -80,33 +103,33 @@ class Artist(models.Model):
                     break
             if not insignificant:
                 name_options.append(between_parens)
-                
+
         return name_options
-    
+
     @property
     def name_without_comma(self):
         """Swaps the two segments of text before and after the first comma: Bowie, David -> David Bowie"""
         return self.decommafy(unicode(self.name))
-        
+
     @property
     def name_with_comma(self):
         """Separates the first word of text and places it at the end with a comma The Flaming Lips -> Flaming Lips, The"""
-        return self.commafy(unicode(self.name)) 
+        return self.commafy(unicode(self.name))
 
     @staticmethod
     def decommafy(label):
         if ',' in label:
             firstCommaPosition = label.find(',')
-            firstAndPosition = label.find('&') if label.find('&') <> -1 else label.find('and')
+            firstAndPosition = label.find('&') if label.find('&') != -1 else label.find('and')
             if (firstCommaPosition < firstAndPosition):
                 return label[firstCommaPosition + 2:firstAndPosition] + \
-                        label[:firstCommaPosition] + " " + \
-                        label[firstAndPosition:]
+                    label[:firstCommaPosition] + " " + \
+                    label[firstAndPosition:]
             else:
                 return label[firstCommaPosition + 2:] + " " + label[:firstCommaPosition]
         else:
             return label
-        
+
     @staticmethod
     def commafy(label):
         """Separates the first word of text and places it at the end with a comma The Flaming Lips -> Flaming Lips, The"""
@@ -114,9 +137,9 @@ class Artist(models.Model):
         if (firstSpacePosition > -1 and label.count(',') == 0):
             return label[firstSpacePosition + 1:] + ", " + label[:firstSpacePosition]
         else:
-            return label   
-        
-# An individual, physical album in the stacks at WUVT.
+            return label
+
+
 class Album(models.Model):
     name = models.CharField(max_length=100)
     artist = models.ForeignKey(Artist, related_name='artist_set')
@@ -134,11 +157,10 @@ class Album(models.Model):
     visible = models.BooleanField()
     compilation = models.BooleanField()
     needs_librarian_review = models.BooleanField()
-    
+
     def __unicode__(self):
         return self.name
 
-# A song.  Each song can live on one album.
 
 class Song(models.Model):
 
@@ -156,6 +178,6 @@ class Song(models.Model):
     lyrics = models.TextField(null=True, blank=True)
     librarian_note = models.TextField(null=True, blank=True)
     needs_librarian_review = models.BooleanField()
-    
+
     def __unicode__(self):
         return self.name

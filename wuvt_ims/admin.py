@@ -8,12 +8,14 @@ admin.site.register(Label)
 admin.site.register(Artist)
 admin.site.register(Song)
 
+
 class SongInline(admin.TabularInline):
     model = Song
     fieldsets = [
         (None, {'fields': ['track_num', 'name', 'fcc', 'suggested']}),
     ]
     extra = 10
+
 
 class AlbumAdmin(admin.ModelAdmin):
     fieldsets = [

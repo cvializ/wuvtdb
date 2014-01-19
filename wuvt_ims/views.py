@@ -19,9 +19,9 @@ class YearRangeCharField(forms.CharField):
     __metaclass__ = models.SubfieldBase
     
     def validate(self, value):
-        'Value is a tuple containing two dates'
-        if value[0] is None:
-            raise ValidationError('There must be a first date.')
+        'Value is a tuple containing two dates, or no dates'
+        if value[0] is None and value[1] is not None:
+            raise ValidationError('There must be a first date if there is a second.')
         if value[1] is None and value[0] < datetime(1890, 1, 1):
             raise ValidationError('Your query predates recorded sound.')
         if value[1] is not None and value[0] > value[1]:

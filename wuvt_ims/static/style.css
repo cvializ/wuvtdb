@@ -59,15 +59,22 @@ a:link, a:visited, a:hover, a:active
 	margin: inherit;
 	font-size: 20px;
 }
+
 #header-text
 {
-    padding: 4px;
+	
 }
+
 #header-image
 {
-    display: inline;
     float: left;
     margin-right: 10px;
+}
+
+#header-image img
+{
+    max-height: 240px;	
+    width: auto;
 }
 
 #navigation ul li
@@ -76,7 +83,8 @@ a:link, a:visited, a:hover, a:active
 }
 
 #content
-{
+{l
+	clear: both;
 	margin: 5px;
 }
 

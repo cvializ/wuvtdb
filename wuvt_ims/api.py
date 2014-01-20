@@ -4,6 +4,8 @@ import hashlib
 import requests
 import pylast
 
+import re
+
 from xml.etree import ElementTree
 from wuvt_ims.models import *
 from pylast import COVER_LARGE, IMAGES_ORDER_POPULARITY, WSError
@@ -327,9 +329,8 @@ class LyricsWiki(AbstractApi):
     def has_fcc(lyrics):
         if lyrics is None:
             return False
-
-        fcc_words = ['shit', 'piss', 'fuck', 'cunt', 'cock', 'goddamn', 'god damn', 'bitch', 'nigger']
-        for word in fcc_words:
-            if lyrics.find(word) != -1:
-                return True
-        return False
+        
+        lyrics = set(re.sub("[^a-zA-Z ]", "", lyrics).lower().split())
+        fcc_words = set(['shit', 'piss', 'fuck', 'cunt', 'cock', 'goddamn', 'god damn', 'bitch', 'nigger'])
+        
+        return lyrics & fcc_words

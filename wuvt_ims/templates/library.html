@@ -11,7 +11,8 @@ function toggleFaq() {
  */
 function demoForm(demoSearchObject) {
 	var form = $('form#search')[0];
-	form.reset();
+	//form.reset(); // why doesn't this work?
+	$('form#search input[type="text"]').val('');
 	for (var key in demoSearchObject) {
 		if (demoSearchObject.hasOwnProperty(key)) {
 			$('form#search input[name="' + key + '"]').val(demoSearchObject[key]);
@@ -19,7 +20,8 @@ function demoForm(demoSearchObject) {
 	}
 	form.submit();
 	
-	return true;
+	// Don't follow the anchor link if Javascript is enabled.
+	return false;
 }
 
 </script>
@@ -31,7 +33,7 @@ function demoForm(demoSearchObject) {
 
 {% block content %}
     <p>Fill in any of the fields below to search for an album.</p>
-    <p><a href="#" onclick="javascript: toggleFaq()">Click here for help.</a></p>
+    <p><a href="#" onclick="toggleFaq()">Click here for help.</a></p>
     <div id="faq" style="display: none;">
         <h3>Album listings</h3>
         <p>To get a list of all of the albums that WUVT has by a particular artist, click on their name in the search results. For example, <a href="/library/artist/David%20Bowie">David Bowie</a></p>
@@ -43,7 +45,7 @@ function demoForm(demoSearchObject) {
         <li><a href="?album=sex" onclick="return demoForm({album: 'sex'});">A sexy themed show</a></li>
         <li><a href="?label=merge&year=1995-2000" onclick="return demoForm({label: 'merge', year: '1995-2000'});">A label themed show</a></li>
         <li><a href="?genre=funk&year=1975-1990" onclick="return demoForm({genre: 'funk', year: '1975-1990'});">Classic funk</a></li>
-        <li><a href="?stack=Vinyl&year=1980-1990&genre=dance" onclick="return demoForm({stack: 'Vinyl', year: '1980-1990', genre: 'dance'});">All-vinyl 80s dance show</a></li>
+        <li><a href="?stack=Vinyl&year=1980-1990&genre=dance" onclick="return demoForm({stack: 'vinyl', year: '1980-1990', genre: 'dance'});">All-vinyl 80s dance show</a></li>
         </ul>
         <h3>Notes</h3>
         <p>Searching only by song title is iffy. Song title alone will return few results. Searching by song title and by an artist will return more results.</p>

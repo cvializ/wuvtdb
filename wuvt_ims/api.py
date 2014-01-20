@@ -6,6 +6,7 @@ import pylast
 
 import re
 
+from django.conf import settings
 from xml.etree import ElementTree
 from wuvt_ims.models import *
 from pylast import COVER_LARGE, IMAGES_ORDER_POPULARITY, WSError
@@ -72,7 +73,7 @@ class MusicApi(AbstractApi):
 class EchoNest(MusicApi):
     def __init__(self):
         super(EchoNest, self).__init__('http://developer.echonest.com/api/v4/%s?api_key=%s&%s',
-                                       'FB1MYKOM4ZVADN2MS');
+                                        settings.API['ECHONEST']['DEV_KEY']);
 
     def get_artist_art(self, artist):
         request_args = {
@@ -92,8 +93,8 @@ class EchoNest(MusicApi):
 
 class PyLastFm(MusicApi):
     def __init__(self):
-        super(PyLastFm, self).__init__('', '530c72108fe6d60d35bb4a8fda85efd5')
-        self._secret = 'a01496aac8e2c7ddc90371aba5118317'
+        super(PyLastFm, self).__init__('',  settings.API['LASTFM']['DEV_KEY'])
+        self._secret =  settings.API['LASTFM']['SECRET_KEY']
         self._network = pylast.LastFMNetwork(api_key=self._key,
                                              api_secret=self._secret,
                                              )
@@ -173,7 +174,7 @@ class PyLastFm(MusicApi):
 class LastFm(MusicApi):
     def __init__(self):
         super(LastFm, self).__init__('http://ws.audioscrobbler.com/2.0/?%s&api_key=%s&%s',
-                                     '530c72108fe6d60d35bb4a8fda85efd5')
+                                      settings.API['LASTFM']['DEV_KEY'])
 
     def get(self, resource, params=None):
         params['method'] = resource['method']
@@ -247,8 +248,8 @@ class LastFm(MusicApi):
 class AllMusic(MusicApi):
     def __init__(self):
         super(AllMusic, self).__init__('http://api.rovicorp.com/data/v1/%s?apikey=%s&format=xml&%s',
-                                       'w257dh2mk53pg8rz3uyqnght')
-        self._secret = 'sneGF2JCmN'
+                                       settings.API['ALLMUSIC']['DEV_KEY'])
+        self._secret =  settings.API['ALLMUSIC']['SECRET_KEY']
 
     def _sig(self):
         timestamp = int(time.time())
@@ -331,6 +332,5 @@ class LyricsWiki(AbstractApi):
             return False
         
         lyrics = set(re.sub("[^a-zA-Z ]", "", lyrics).lower().split())
-        fcc_words = set(['shit', 'piss', 'fuck', 'cunt', 'cock', 'goddamn', 'god damn', 'bitch', 'nigger'])
         
-        return lyrics & fcc_words
+        return lyrics & settings.FCC_WORDS

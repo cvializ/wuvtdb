@@ -102,3 +102,5 @@ LOGGING = {
         },
     }
 }
+
+FCC_WORDS = set(['shit', 'piss', 'fuck', 'cunt', 'cock', 'goddamn', 'god damn', 'bitch', 'nigger'])

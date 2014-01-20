@@ -12,7 +12,7 @@ function toggleFaq() {
 function demoForm(demoSearchObject) {
 	var form = $('form#search')[0];
 	//form.reset(); // why doesn't this work?
-	$('form#search input[type="text"]').val('');
+    clearFormText();
 	for (var key in demoSearchObject) {
 		if (demoSearchObject.hasOwnProperty(key)) {
 			$('form#search input[name="' + key + '"]').val(demoSearchObject[key]);
@@ -24,6 +24,10 @@ function demoForm(demoSearchObject) {
 	return false;
 }
 
+function clearFormText() {
+    $('form#search input[type="text"]').val('');
+}
+ 
 </script>
 {% endblock %}
 
@@ -67,7 +71,8 @@ function demoForm(demoSearchObject) {
 	        <br />
 	        {{ form.sortby.label_tag }}: {{ form.sortby }}
 	        <br />
-	        <input type="submit" value="Submit" />
+	        <input type="submit" value="Search" />
+            <input type="button" value="Clear" onclick="clearFormText();" />
         </fieldset>
         {% include "album_table.html" %}
         Results per page: {{ form.items_per_page }}

@@ -10,6 +10,12 @@
 {% block header_image %}
     {% if album_art %}
         <img src="{{ album_art }}" />
+    {% else %}
+        {% if 'vinyl' in album.stack.name or 'Vinyl' in album.stack.name %}
+            <img src="{{ STATIC_URL }}novinylart.png" />
+        {% else %}
+            <img src="{{ STATIC_URL }}nocdart.png" />
+        {% endif %}
     {% endif %}
 {% endblock %}
 

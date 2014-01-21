@@ -10,6 +10,8 @@
 {% block header_image %}
     {% if artist_art %}
         <img src="{{ artist_art }}" />
+    {% else %}
+        <img src="{{ STATIC_URL }}noart.jpg" />
     {% endif %}
 {% endblock %}
 

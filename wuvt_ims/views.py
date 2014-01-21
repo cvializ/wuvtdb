@@ -4,6 +4,7 @@ from django.forms.util import ErrorList
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.conf import settings
 from pylast import WSError
 
 from itertools import chain
@@ -267,6 +268,7 @@ def lib_album(request, artist_name, album_title):
                 songs = save_track_list(album)
         except WSError:
             errors.append('The album or artist could not be found by Last.Fm')
+            
     else:
         if artist is None:
             errors.append('The artist was not found in the WUVT Library.')
